@@ -1,0 +1,131 @@
+$font-size-base: 14px;
+$base-font-color: #3c4455;  //  字体颜色
+$text-color-help: rgba($base-font-color, 0.7);  // 辅助文字颜色
+$stripe: #f2f5fa; // 斑马线
+$border-color: #dbdcdc; //表格边框
+$row-split-color: #e8e8e5; //分割线
+$header-color: #f3f4f6; //表头背景
+$hover-row-color: #f3f7fa;  //行hover
+
+.table_border {
+  border: 1px solid $border-color;
+  border-bottom: none;
+  overflow: hidden;
+}
+
+.standardTable {
+  /*滚动条整体部分,必须要设置*/
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background-color: #fdfdfd;
+  }
+  /*滚动条的轨道*/
+  ::-webkit-scrollbar-track {
+    background-color: #fdfdfd;
+  }
+  /*滚动条的滑块按钮*/
+  ::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: #dde3ea;
+  }
+  /*滚动条的上下两端的按钮*/
+  ::-webkit-scrollbar-button {
+    height: 10px;
+    background-color: #fdfdfd;
+  }
+  .need_border {
+    .el-table {
+      border: 1px solid $border-color;
+      //  padding: 0 10px;
+    }
+  }
+  .el-table.el-table--small {
+    color: #4b556a;
+    // &.el-table--enable-row-hover .el-table__body tr:hover>td {
+    //   border-top: $border;
+    //   border-bottom: $border;
+    //   &:first-child {
+    //     border-left: $border;
+    //   }
+    //   &:last-child {
+    //     border-right: $border;
+    //   }
+    // }
+    &.el-table--striped .el-table__body tr.el-table__row--striped td {
+      background: $stripe;
+    }
+    .el-table__header-wrapper {
+      th {
+        &.is-leaf {
+          border-bottom: 1px solid $border-color;
+        }
+        background-color: $header-color;
+        padding: 8px 0;
+        color: $text-color-help;
+        font-size: $font-size-base;
+      }
+    }
+    .el-table__body-wrapper {
+      // 表格行高
+      td .cell {
+        line-height: 16px; // font-size: 14px;
+      }
+    }
+    .el-table__fixed,
+    .el-table__fixed-right {
+        box-shadow: none;
+
+        .el-table__fixed-header-wrapper {
+            th {
+                &.is-leaf {
+                    border-bottom: 1px solid $border-color;
+                }
+                background-color: $header-color;
+                padding: 8px 0;
+                color: $text-color-help;
+                font-size: $font-size-base;
+            }
+        }
+        .el-table__fixed-body-wrapper {
+            // 表格行高
+            td .cell {
+                line-height: 16px; // font-size: 14px;
+            }
+        }
+    }
+
+    .el-table__fixed::before, .el-table__fixed-right::before {
+      height: 0;
+    }
+  }
+
+  //表格中分页的样式
+    .pagination{
+        padding: 10px 0px 10px 0px;
+        position: relative;
+        text-align: right;
+        background-color: #fff;
+        &.is-background{
+            .btn-prev{
+                background-color: #fff;
+            }
+            .btn-next{
+                background-color: #fff;
+            }
+        }
+        .el-pagination__total, .el-pagination__sizes{
+            float: left;
+        }
+    }
+    //以下这两段修改分页样式的css是用于修复冲突的
+    .el-pagination--small span:not([class*=suffix]){
+    line-height: 28px;
+    height: 28px;
+    }
+    .el-pagination.is-background.el-pagination--small .btn-next,
+    .el-pagination.is-background.el-pagination--small .btn-prev,
+    .el-pagination.is-background.el-pagination--small .el-pager li {
+    margin: 3px;
+    }
+}
