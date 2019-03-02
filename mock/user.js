@@ -1,8 +1,10 @@
 import { param2Obj } from './utils'
 
+const token = 'BvLODAm5MysVK1jA258YHA2ll0ebwLIc';
+
 const tokens = {
   admin: {
-    token: 'admin-token'
+    token: token
   },
   editor: {
     token: 'editor-token'
@@ -10,7 +12,7 @@ const tokens = {
 }
 
 const users = {
-  'admin-token': {
+  'admin': {
     roles: ['admin'],
     introduction: 'I am a super administrator',
     avatar: 'http://www.beeboone.com/images/logo.png',
@@ -41,15 +43,15 @@ export default {
     }
   },
   getInfo: res => {
-    const { token } = param2Obj(res.url)
-    const info = users[token]
-
-    if (info) {
+    const { token: userToken } = param2Obj(res.url)
+    if (userToken === token) {
+      const info = users['admin'];
       return {
         code: 20000,
         data: info
       }
     }
+
     return {
       code: 50008,
       message: 'Login failed, unable to get user details.'

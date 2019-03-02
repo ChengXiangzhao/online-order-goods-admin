@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 
-let url = request.mockurl;
+let url = request.url;
 
 export function getList(params) {
   return request({

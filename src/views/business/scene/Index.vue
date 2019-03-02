@@ -209,9 +209,16 @@ export default {
         },
         query () {
             this.loading = true;
-            getList().then(({datas, status, message}) => {
+            let params = {
+                page: this.currPage,
+                pageSize: this.pageSize,
+                status: this.searchForm.status
+            };
+            if (this.searchForm.name !== '') {
+                params.name = this.searchForm.name;
+            }
+            getList(params).then(({datas, status, message}) => {
                 this.loading = false;
-                console.log(datas);
                 let list = [];
                 datas.infos.forEach(item => {
                     list.push(item.base);

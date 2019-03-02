@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { Message, MessageBox } from 'element-ui'
-import store from '../store'
 import { getToken } from '@/utils/auth'
 
 // 创建axios实例
@@ -15,19 +14,15 @@ const service = axios.create({
 // request拦截器
 service.interceptors.request.use(
   config => {
-    if (store.getters.token) {
-      config.headers['X-Token'] = getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
-    }
     if (!config.params) {
       config.params = {};
     }
-    config.params['access-token'] = 'Fspg58znob39RUlt8oliYkJIGlovNs5V';
-    console.log(config);
+    if (getToken()) {
+      config.params['access-token'] = getToken();
+    }
     return config
   },
   error => {
-    // Do something with request error
-    console.log(error) // for debug
     Promise.reject(error)
   }
 )

@@ -243,6 +243,7 @@ export default {
                     delete params.startDate;
                     delete params.signDate;
 
+                    params.status = '1';
                     addScene(obj2FormData(params)).then((data) => {
                         console.log(data);
                     });
