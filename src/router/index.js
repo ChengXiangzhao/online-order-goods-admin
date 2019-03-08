@@ -57,6 +57,12 @@ export const asyncRouterMap = [
         hidden: true,
         component: () => import('@/views/business/scene/Add'),
         meta: { title: '发布活动', icon: 'table' }
+      },
+      {
+        path: 'appraisal',
+        name: '评款会管理',
+        component: () => import('@/views/business/appraisal/Index'),
+        meta: { title: '评款会管理', icon: 'table' }
       }
     ]
   },

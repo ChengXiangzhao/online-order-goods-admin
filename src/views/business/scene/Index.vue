@@ -45,7 +45,7 @@
                         ></Table>
                     </div>
                 </el-tab-pane>
-                <el-tab-pane name="sceneSetting">
+                <el-tab-pane name="sceneSetting" lazy>
                     <template slot="label">
                         <div class="label-outside">
                             <div class="label-inner">
@@ -53,25 +53,45 @@
                             </div>
                         </div>
                     </template>
+                    <Setting></Setting>
                 </el-tab-pane>
             </el-tabs>
         </div>
         <div class="right-btns">
             <el-button type="primary" icon="el-icon-plus" @click="add">新建活动</el-button>
         </div>
+
+        <restart-dialog
+            :visible="restartVisible"
+            :is-overdue="true"
+            :sceneId="1"
+            @close="restartVisible = false"
+        ></restart-dialog>
+
+        <share-dialog
+            :visible="shareVisible"
+            :scene="scene"
+            @close="shareVisible = false"
+        ></share-dialog>
     </div>
 </template>
 
 <script>
 import moment from 'moment';
 import Table from '@components/Table';
-import { getList } from '@/api/business';
+import Setting from './Setting';
+import RestartDialog from '../RestartDialog';
+import ShareDialog from '../ShareDialog';
+import { listScene } from '@/api/business';
 import { colRender } from '@/utils/util';
 
 export default {
     name: 'scene-list',
     components: {
-        Table
+        Table,
+        Setting,
+        RestartDialog,
+        ShareDialog
     },
     data() {
         let _self = this;
@@ -96,7 +116,7 @@ export default {
             startCreatedTime: '',
             columns: [
                 {
-                    prop: 'id',
+                    prop: 'code',
                     label: 'ID',
                     minWidth: 100
                 },
@@ -194,7 +214,10 @@ export default {
                         }
                     ])
                 }
-            ]
+            ],
+            restartVisible: false,
+            shareVisible: false,
+            scene: {}
         }
     },
     methods: {
@@ -217,7 +240,7 @@ export default {
             if (this.searchForm.name !== '') {
                 params.name = this.searchForm.name;
             }
-            getList(params).then(({datas, status, message}) => {
+            listScene(params).then(({datas, status, message}) => {
                 this.loading = false;
                 let list = [];
                 datas.infos.forEach(item => {
@@ -249,17 +272,18 @@ export default {
         handleTabClick () {
             console.log(this.activeName);
         },
-        edit () {
-            console.log(this.activeName);
+        edit (record) {
+            this.$router.push({path: '/business/addScene', query: {id: record.id}});
         },
         pause () {
-            console.log(this.activeName);
+            this.restartVisible = true;
         },
         setting () {
             console.log(this.activeName);
         },
-        qrView () {
-            console.log(this.activeName);
+        qrView (record) {
+            this.scene = record;
+            this.shareVisible = true;
         },
         add () {
             this.$router.push('/business/addScene');
@@ -280,71 +304,6 @@ export default {
         position: absolute;
         top: 60px;
         right: 20px;
-    }
-
-    .label-outside {
-        width: 220px;
-        height: 40px;
-        border: 0;
-        border-bottom: 1px solid #ddd;
-        text-align: center;
-
-        .label-inner {
-            display: inline-block;
-            width: 200px;
-            height: 40px;
-            border-radius: 5%;
-            border-bottom-left-radius: 0%;
-            border-bottom-right-radius: 0%;
-            border: 1px solid #ddd;
-            background-color: rgba(#eee, 0.4);
-        }
-    }
-
-    .el-tabs--top.el-tabs--card .el-tabs__item:nth-child(2) {
-        padding-left: 0;
-    }
-    .el-tabs--top.el-tabs--card .el-tabs__item:last-child {
-        padding-right: 0;
-    }
-
-    .el-tabs__header {
-        .el-tabs__nav {
-            border: none;
-        }
-
-        .el-tabs__item {
-            border: none;
-            border-bottom: 1px solid #ccc;
-            padding: 0;
-        }
-
-        .el-tabs__item.is-active {
-            .label-inner {
-                border-bottom: 1px solid #fff;
-                background-color: #fff
-            }
-        }
-    }
-
-    .el-tabs__content {
-        padding: 20px;
-    }
-
-    .cell {
-        ul{
-            list-style-type:none;
-            width:100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        .el-button--small {
-            padding: 4px 1px;
-        }
-        .el-button+.el-button {
-            margin-left: 0;
-        }
     }
 }
 </style>

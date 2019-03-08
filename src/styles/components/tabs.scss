@@ -1,0 +1,50 @@
+.main {
+    .label-outside {
+        width: 220px;
+        height: 40px;
+        border: 0;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+    
+        .label-inner {
+            display: inline-block;
+            width: 200px;
+            height: 40px;
+            border-radius: 5%;
+            border-bottom-left-radius: 0%;
+            border-bottom-right-radius: 0%;
+            border: 1px solid #ddd;
+            background-color: rgba(#eee, 0.4);
+        }
+    }
+    
+    .el-tabs--top.el-tabs--card .el-tabs__item:nth-child(2) {
+        padding-left: 0;
+    }
+    .el-tabs--top.el-tabs--card .el-tabs__item:last-child {
+        padding-right: 0;
+    }
+    
+    .el-tabs__header {
+        .el-tabs__nav {
+            border: none;
+        }
+    
+        .el-tabs__item {
+            border: none;
+            border-bottom: 1px solid #ccc;
+            padding: 0;
+        }
+    
+        .el-tabs__item.is-active {
+            .label-inner {
+                border-bottom: 1px solid #fff;
+                background-color: #fff
+            }
+        }
+    }
+    
+    .el-tabs__content {
+        padding: 20px;
+    }
+}

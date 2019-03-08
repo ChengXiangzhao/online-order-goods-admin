@@ -128,4 +128,20 @@ $hover-row-color: #f3f7fa;  //行hover
     .el-pagination.is-background.el-pagination--small .el-pager li {
     margin: 3px;
     }
+
+    .cell {
+      ul{
+          list-style-type:none;
+          width:100%;
+          margin: 0;
+          padding: 0;
+      }
+
+      .el-button--small {
+          padding: 4px 1px;
+      }
+      .el-button+.el-button {
+          margin-left: 0;
+      }
+  }
 }

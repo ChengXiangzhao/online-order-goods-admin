@@ -250,25 +250,30 @@ export function removeNullInObject(config) {
 }
 
 // 将对象转换成form-data形式
-export function obj2FormData (obj) {
-    let formData = new FormData();
+export function obj2FormData (obj, form, namespace) {
+    let formData = form || new FormData();
     let keys = Object.keys(obj);
     for (let key of keys.values()) {
         let val = obj[key];
+        // 对象嵌套
+        let formKey = namespace ? `${namespace}[${key}]` : key;
 
-        if (val instanceof Array) {
+        if (typeof val === 'object') {
+            // 递归调用
+            obj2FormData(val, formData, formKey);
+        } else if (val instanceof Array) {
             //  数组内容
             if (val[0] && val[0] instanceof File) {
                 // 文件上传
                 for (let f of val.values()) {
-                    formData.append(key, f);
+                    formData.append(formKey, f);
                 }
             } else {
-                formData.append(key, val.join(','));
+                formData.append(formKey, val.join(','));
             }
         } else {
             // 文本内容(不含对象)
-            formData.append(key, val);
+            formData.append(formKey, val);
         }
     }
 

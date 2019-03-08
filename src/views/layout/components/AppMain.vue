@@ -13,7 +13,7 @@
         <el-button type="text">隐私</el-button>
         <el-button type="text">条款</el-button>
       </div>
-      <div class="item">
+      <div class="item text-tip">
         <span>copyright</span><svg-icon icon-class="copyright"/><span></span><span> 2019 北京衣点达软件有限公司</span>
       </div>
     </div>
@@ -47,8 +47,6 @@ export default {
     padding: 30px 0;
 
     .item {
-      color: rgba(#111, 0.4);
-      font-size: 13px;
       text-align: center;
     }
   }

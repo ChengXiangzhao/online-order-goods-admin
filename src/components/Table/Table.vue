@@ -10,7 +10,6 @@
               :row-class-name='rowClassName'
               :cell-class-name='cellClassName'
               :cell-style="{padding: '0px'}"
-              :height="tbHeight"
               :stripe="stripe"
               style="width: 100%; height: 100%;"
               @row-click="rowClick"
@@ -132,14 +131,6 @@ export default {
     },
     components: {
         ColumnRender
-    },
-    computed: {
-        tbHeight: function () {
-            if (this.dataSource.length < 15) {
-                return 10 * 33.2;
-            }
-            return this.height ? this.height : this.pageSize ? 48 + this.pageSize * 33.2 : null;
-        }
     },
     methods: {
         handleCurrentChange(val) {

@@ -20,6 +20,7 @@ service.interceptors.request.use(
     if (getToken()) {
       config.params['access-token'] = getToken();
     }
+    console.log(config);
     return config
   },
   error => {
@@ -48,7 +49,7 @@ service.mockurl = (url) => {
 }
 
 service.url = (url) => {
-  return url;
+  return `/api${url}`;
 }
 
 export default service

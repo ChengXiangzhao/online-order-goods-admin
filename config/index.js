@@ -15,16 +15,23 @@ module.exports = {
     errorOverlay: true,
     notifyOnErrors: false,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
-    useEslint: true,
+    useEslint: false,
     showEslintErrorsInOverlay: false,
     devtool: 'cheap-source-map',
     cssSourceMap: false,
     proxyTable: {
-      '/admin/business': {
+      '/api/admin': {
         target: 'http://restapp.test.ydd.ltd/',
         changeOrigin: true,
         pathRewrite: {
-          '^/': ''
+          '^/api/': ''
+        }
+      },
+      '/api/upload': {
+        target: 'http://a.test.ydd.ltd/',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api/': ''
         }
       }
     }

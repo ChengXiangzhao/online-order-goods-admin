@@ -10,14 +10,14 @@
             </div>
             <el-form ref="form" :model="form" :rules="rules" label-suffix=":" label-width="150px">
                 <el-form-item label="活动类型" prop="sort" required>
-                    <el-radio-group v-model="form.sort" @change="handleSortChange">
+                    <el-radio-group v-model="form.sort" disabled="type === 'edit'" @change="handleSortChange">
                         <el-radio label="appraisal">评款会</el-radio>
                         <el-radio label="purchasing">订货会</el-radio>
                         <el-radio label="both">评款会+订货会</el-radio>
                     </el-radio-group>
                 </el-form-item>
-                <el-form-item label="活动代码" prop="id" required>
-                    <el-input class="info-item" v-model="form.id" placeholder="请输入3-9位数字或英文"></el-input>
+                <el-form-item label="活动代码" prop="code" required>
+                    <el-input class="info-item" v-model="form.code" placeholder="请输入3-9位数字或英文"></el-input>
                 </el-form-item>
                 <el-form-item label="标题" prop="name">
                     <el-input class="info-item" v-model="form.name"></el-input>
@@ -25,28 +25,32 @@
                 <el-form-item label="副标题(可选)">
                     <el-input class="info-item" v-model="form.title"></el-input>
                 </el-form-item>
-                <el-form-item label="主图">
+                <el-form-item label="主图" prop="picture">
                     <el-upload
                         class="avatar-uploader"
-                        action=""
+                        action="/api/upload/base/scene/picture.html"
+                        :data="uploadData"
+                        name="Attachment[files][picture]"
                         :show-file-list="false"
-                        :on-success="(res, file) => handlePicSuccess(res, file, 'mainPicUrl')"
+                        :on-success="(res, file) => handlePicSuccess(res, file, 'picture')"
                         :before-upload="beforePicUpload"
                     >
-                        <img v-if="mainPicUrl" :src="mainPicUrl" class="avatar" alt="点击替换图片">
-                        <i class="el-icon-plus avatar-uploader-icon"></i>
+                        <img v-if="picture" :src="picture" class="avatar">
+                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                     </el-upload>
                 </el-form-item>
                 <el-form-item label="微信分享图(可选)">
                     <el-upload
                         class="avatar-uploader"
-                        action=""
+                        action="/api/upload/base/scene/picture_wechat.html"
+                        :data="uploadData"
+                        name="Attachment[files][picture_wechat]"
                         :show-file-list="false"
-                        :on-success="(res, file) => handlePicSuccess(res, file, 'vicePicUrl')"
+                        :on-success="(res, file) => handlePicSuccess(res, file, 'picture_wechat')"
                         :before-upload="beforePicUpload"
                     >
-                        <img v-if="vicePicUrl" :src="vicePicUrl" class="avatar" alt="点击替换图片">
-                        <i class="el-icon-plus avatar-uploader-icon"></i>
+                        <img v-if="picture_wechat" :src="picture_wechat" class="avatar">
+                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                     </el-upload>
                 </el-form-item>
                 <el-form-item label="活动场馆" prop="stadium">
@@ -69,10 +73,10 @@
                 <div class="open-sign">
                     <div class="is-open">
                         <el-form-item label="是否开放报名">
-                            <el-switch v-model="form.is_signup"></el-switch>
+                            <el-switch v-model="form.is_signup" :active-value="1" :inactive-value="0"></el-switch>
                         </el-form-item>
                     </div>
-                    <div class="open-option" v-if="form.is_signup">
+                    <div class="open-option" v-if="form.is_signup === 1">
                         <el-form-item label="">
                             <el-checkbox-group v-model="form.openType">
                                 <el-checkbox label="date" name="date">日期</el-checkbox>
@@ -123,7 +127,7 @@
                     <div class="btn-group">
                         <el-button>预览</el-button>
                         <el-button>保存并进行下一步</el-button>
-                        <el-button type="primary" @click="onSubmit">确定发布</el-button>
+                        <el-button type="primary" @click="onSubmit">{{type === 'edit' ? '保存修改' : '确定发布'}}</el-button>
                     </div>
                 </el-form-item>
             </el-form>
@@ -139,12 +143,14 @@ import { quillEditor } from 'vue-quill-editor';
 import moment from 'moment';
 import cloneDeep from 'lodash/cloneDeep';
 import { obj2FormData } from '@/utils/util';
-import { addScene } from '@/api/business';
+import { addScene, sceneDetail, updateScene } from '@/api/business';
 
 export default {
     name: 'add-scene',
     components: { quillEditor },
     data() {
+        let _self = this;
+
         let checkId = (rule, value, callback) => {
             let regId = /[0-9a-zA-Z]+/g;
             if (!value) {
@@ -159,16 +165,25 @@ export default {
                 callback();
             }
         };
+        let picCheck = (rule, value, callback) => {
+            if (_self.form.picture === '') {
+                return callback(new Error('请上传主图'));
+            } else {
+                callback();
+            }
+        };
+
         return {
+            type: 'add',
             form: {
                 sort: 'appraisal',
-                id: '',
+                code: '',
                 supplier_id: 547,
                 website_id: 4,
                 name: '',
                 title: '',
-                mainPic: '',
-                vicePic: '',
+                picture: '',
+                picture_wechat: '',
                 stadium: '',
                 address: '',
                 startDate: '',
@@ -179,18 +194,21 @@ export default {
                 signup_person: [],
                 description: ''
             },
-            mainPicUrl: '',
-            vicePicUrl: '',
+            picture: '',
+            picture_wechat: '',
+            uploadData: {
+                id: '',
+                mparam: ''
+            },
             rules: {
-                id: [
-                    { validator: checkId, trigger: 'blur' }
-                ],
+                code: [{ validator: checkId, trigger: 'blur' }],
                 name: [{ required: true, message: '请输入活动标题', trigger: 'blur' }],
                 stadium: [{ required: true, message: '请输入场馆名称', trigger: 'blur' }],
                 startDate: [{ required: true, message: '请输入活动日期', trigger: 'blur' }],
                 signDate: [{ required: true, message: '请输入报名日期', trigger: 'blur' }],
                 signup_sort: [{ required: true, message: '请选择参会人员类型', trigger: 'blur' }],
-                signup_person: [{ required: true, message: '请选择参会人员', trigger: 'blur' }]
+                signup_person: [{ required: false, message: '请选择参会人员', trigger: 'blur' }],
+                picture: [{ validator: picCheck, trigger: 'blur' }]
             },
             peopleTypeList: [
                 {
@@ -232,8 +250,6 @@ export default {
         onSubmit () {
             this.$refs.form.validate((valid) => {
                 if (valid) {
-                    // 判断主图是否存在
-
                     let params = cloneDeep(this.form);
                     // 格式化活动时间和报名时间
                     params.start_at = moment(params.startDate[0]).format('YYYY-MM-DD HH:mm:ss');
@@ -243,21 +259,39 @@ export default {
                     delete params.startDate;
                     delete params.signDate;
 
-                    params.status = '1';
-                    addScene(obj2FormData(params)).then((data) => {
-                        console.log(data);
+                    if (!params.status) {
+                        params.status = '1';
+                    }
+                    
+                    let id = null;
+                    let fun = addScene;
+                    let sucMsg = '添加活动成功';
+                    if (this.type === 'edit') {
+                        id = params.id;
+                        delete params.id
+                        fun = updateScene;
+                        sucMsg = '修改活动成功';
+                    }
+
+                    fun(obj2FormData(params), id).then((data) => {
+                        if (data.status === 200) {
+                            this.$notify({
+                                title: '成功',
+                                message: sucMsg,
+                                type: 'success'
+                            });
+                        } else {
+                            this.$notify.error({
+                                title: '错误',
+                                message: data.message
+                            });
+                        }
                     });
                 }
             });
         },
-        handleMainPicChange(file, fileList) {
-            this.form.mainPic = fileList;
-        },
-        handleVicePicChange(file, fileList) {
-            this.form.vicePic = fileList;
-        },
         handlePicSuccess(res, file, picName) {
-            console.log(res);
+            this.form[picName] = res.files[0]['id'];
             this[picName] = URL.createObjectURL(file.raw);
         },
         beforePicUpload(file) {
@@ -280,6 +314,24 @@ export default {
             if (val) {
                 console.log(val);
             }
+        }
+    },
+    created() {
+        if (this.$route.query.id) {
+            this.type = 'edit';
+            sceneDetail(this.$route.query.id).then(res => {
+                if (res.status === 200) {
+                    let rawScene = res.datas.info.base;
+                    rawScene.startDate = [moment.unix(rawScene.start_at), moment.unix(rawScene.start_end || rawScene.end_at)];
+                    rawScene.signDate = [moment.unix(rawScene.signup_start), moment.unix(rawScene.signup_end)];
+                    if (!rawScene.signup_sort || rawScene.signup_sort === '') {
+                        rawScene.signup_sort = [];
+                    } else {
+                        rawScene.signup_sort = rawScene.signup_sort.split(',');
+                    }
+                    this.form = rawScene;
+                }
+            });
         }
     }
 }
