@@ -1,38 +1,76 @@
 <template>
-    <div class="appraisal-list">
-        <div class="search-area">
-            <el-form :inline="true" :model="searchForm">
-                <el-form-item label="活动状态">
-                    <el-select v-model="searchForm.status" multiple placeholder="请选择">
-                        <el-option
-                            v-for="item in searchStatusList"
-                            :key="item.value"
-                            :value="item.value"
-                            :label="item.name"
-                        ></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="评款会名称">
-                    <el-input v-model="searchForm.name" placeholder="请输入名称(搜索标题)"></el-input>
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" @click="handleCurrentChange(1)">搜索</el-button>
-                </el-form-item>
-            </el-form>
-        </div>
+    <div class="purchasing">
+        <div class="main">
+            <el-tabs v-model="activeName" type="card" @tab-click="handleTabClick">
+                <el-tab-pane name="list">
+                    <template slot="label">
+                        <div class="label-outside">
+                            <div class="label-inner">
+                                <span><i class="el-icon-tickets"></i> 订货会列表</span>
+                            </div>
+                        </div>
+                    </template>
+                    <div class="purchasing-list">
+                        <div class="search-area">
+                            <el-form :inline="true" :model="searchForm">
+                                <el-form-item label="活动状态">
+                                    <el-select v-model="searchForm.status" multiple placeholder="请选择">
+                                        <el-option
+                                            v-for="item in searchStatusList"
+                                            :key="item.value"
+                                            :value="item.value"
+                                            :label="item.name"
+                                        ></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="订货会名称">
+                                    <el-input v-model="searchForm.name" placeholder="请输入名称(搜索标题)"></el-input>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="handleCurrentChange(1)">搜索</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
 
-        <div class="table-area standardTable">
-            <Table
-                :data-source="tableDatas"
-                :columns="columns"
-                :loading="loading"
-                hasPagination
-                @handleSize="handleSizeChange"
-                @handleCurrent="handleCurrentChange"
-                :total="totalCount"
-                :current-page="currPage"
-                :page-size="pageSize"
-            ></Table>
+                        <div class="table-area standardTable">
+                            <Table
+                                :data-source="tableDatas"
+                                :columns="columns"
+                                :loading="loading"
+                                hasPagination
+                                @handleSize="handleSizeChange"
+                                @handleCurrent="handleCurrentChange"
+                                :total="totalCount"
+                                :current-page="currPage"
+                                :page-size="pageSize"
+                            ></Table>
+                        </div>
+                    </div>
+                </el-tab-pane>
+                <el-tab-pane name="goods">
+                    <template slot="label">
+                        <div class="label-outside">
+                            <div class="label-inner">
+                                <span><i class="el-icon-goods"></i> 订货会活动商品</span>
+                            </div>
+                        </div>
+                    </template>
+                    <Goods key="purchasing-goods" :id="currentRecord.id" type="update"></Goods>
+                </el-tab-pane>
+                <el-tab-pane name="setting" v-if="settingShow">
+                    <template slot="label">
+                        <div class="label-outside">
+                            <div class="label-inner">
+                                <span><i class="el-icon-setting"></i> 订货设置</span>
+                            </div>
+                        </div>
+                    </template>
+                    <Setting key="purchasing-setting" :purchasing="currentRecord"></Setting>
+                </el-tab-pane>
+            </el-tabs>
+        </div>
+        <div class="right-btns">
+            <el-button type="primary" icon="el-icon-plus" @click="add">新建活动</el-button>
         </div>
 
         <restart-dialog
@@ -55,18 +93,25 @@ import moment from 'moment';
 import Table from '@components/Table';
 import RestartDialog from '../RestartDialog';
 import ShareDialog from '../ShareDialog';
-import { appraisalList } from '@/api/business';
+import { purchasingList } from '@/api/business';
 import { colRender } from '@/utils/util';
 import bitmap from '@/assets/images/thumb_pic10.jpg'
+import Setting from './Setting';
+import Goods from './Goods';
 
 export default {
-    name: 'appraisal-list',
+    name: 'purchasing-index',
     components: {
-        Table
+        Table,
+        Setting,
+        Goods
     },
     data() {
         let _self = this;
         return {
+            activeName: 'list',
+            settingShow: false,
+            currentRecord: {scene: {id: null}},
             tableDatas: [],
             totalCount: 1,
             pageSize: 50,
@@ -99,10 +144,6 @@ export default {
                 "1": "进行中",
                 "99": "已完成"
             },
-            signupList: {
-                employee: '成员',
-                client: '客户'
-            },
             startCreatedTime: '',
             columns: [
                 {
@@ -120,8 +161,8 @@ export default {
                                 style: 'margin: 3px 0;'
                             })]),
                             h('li', {}, [h('div', {
-                                style: 'text-align: center;color: #2776cd;'
-                            }, record.scene.code)])
+                                style: 'text-align: center;'
+                            }, `ID: ${record.scene.id}`)])
                         ]);
                     }
                 },
@@ -156,24 +197,20 @@ export default {
                 },
                 {
                     prop: 'name',
-                    label: '评款会标题',
+                    label: '订货会标题',
                     minWidth: 140
                 },
                 {
-                    prop: 'appraisal_range',
-                    label: '评款日期',
+                    prop: 'purchasing_range',
+                    label: '订货日期',
                     width: 145
                 },
                 {
-                    prop: 'signup_sort',
-                    label: '参会人员',
-                    minWidth: 50,
+                    prop: 'stadium',
+                    label: '场馆名',
+                    minWidth: 160,
                     render: function (h, {record}) {
-                        return h('ul', {}, record.scene.signup_sort.split(',').map(item => {
-                            return h('li', {style: 'text-align: center; margin-bottom: 3px;'}, [h('span', {
-                                style: 'color: #2776cd;'
-                            }, _self.signupList[item])]);
-                        }));
+                        return <span>{`${record.scene.stadium}`}</span>;
                     }
                 },
                 {
@@ -200,17 +237,17 @@ export default {
                             onClick: _self.pause
                         },
                         {
-                            text: '评款设置',
+                            text: '订货设置',
                             code: 'setting',
                             onClick: _self.setting
                         },
                         {
-                            text: '评款商品',
-                            code: 'setting',
+                            text: '订货商品',
+                            code: 'sales',
                             onClick: _self.goods
                         },
                         {
-                            text: '添加评款商品',
+                            text: '添加订货商品',
                             code: 'sales',
                             onClick: _self.addGoods
                         },
@@ -227,6 +264,26 @@ export default {
         }
     },
     methods: {
+        handleTabClick () {
+            console.log(this.activeName);
+        },
+        handleSettingSwidth (isSetting) {
+            this.settingShow = isSetting;
+            if (isSetting) {
+                this.activeName = 'setting';
+            } else {
+                this.activeName = 'list';
+            }
+        },
+        handleAction (action) {
+            this.currentRecord = action.data;
+            if (action.type === 'sale') {
+                this.activeName = 'goods';
+            } else {
+                this.settingShow = true;
+                this.activeName = 'setting';
+            }
+        },
         handleSizeChange (val) {
             this.pageSize = val;
             this.currPage = 1;
@@ -246,7 +303,7 @@ export default {
             if (this.searchForm.name !== '') {
                 params.name = this.searchForm.name;
             }
-            appraisalList(params).then(({datas, status, message}) => {
+            purchasingList(params).then(({datas, status, message}) => {
                 this.loading = false;
                 let list = [];
                 datas.infos.forEach(item => {
@@ -271,20 +328,16 @@ export default {
         pause () {
             this.restartVisible = true;
         },
-        goods(record) {
-            this.$emit('action', {
-                type: 'goods-list',
-                data: record
-            });
-        },
         addGoods () {
-            this.$router.push('/business/appraisal-goods')
+            this.$router.push('/business/purchasing-goods')
+        },
+        goods (record) {
+            this.currentRecord = record;
+            this.activeName = 'goods';
         },
         setting (record) {
-            this.$emit('action', {
-                type: 'setting',
-                data: record
-            });
+            this.settingShow = true;
+            this.activeName = 'setting';
         },
         qrView () {
             this.shareVisible = true;
@@ -300,8 +353,14 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
-.appraisal-list {
-    padding-top: 20px;
+.purchasing {
+    padding-top: 60px;
     position: relative;
+
+    .right-btns {
+        position: absolute;
+        top: 60px;
+        right: 20px;
+    }
 }
 </style>

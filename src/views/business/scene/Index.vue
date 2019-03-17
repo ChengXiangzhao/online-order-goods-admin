@@ -78,12 +78,14 @@
 
 <script>
 import moment from 'moment';
+import { mapMutations } from 'vuex';
 import Table from '@components/Table';
 import Setting from './Setting';
 import RestartDialog from '../RestartDialog';
 import ShareDialog from '../ShareDialog';
 import { listScene } from '@/api/business';
 import { colRender } from '@/utils/util';
+import bitmap from '@/assets/images/thumb_pic10.jpg'
 
 export default {
     name: 'scene-list',
@@ -116,9 +118,24 @@ export default {
             startCreatedTime: '',
             columns: [
                 {
-                    prop: 'code',
-                    label: 'ID',
-                    minWidth: 100
+                    prop: 'id',
+                    label: '',
+                    width: 80,
+                    render: function (h, {record}) {
+                        return h('ul', {}, [
+                            h('li', {}, [h('img', {
+                                attrs: {
+                                    src: record.pictureUrl ? record.pictureUrl : bitmap,
+                                    width: 70,
+                                    height: 60
+                                },
+                                style: 'margin: 3px 0;'
+                            })]),
+                            h('li', {}, [h('div', {
+                                style: 'text-align: center;color: #2776cd;'
+                            }, record.code)])
+                        ]);
+                    }
                 },
                 {
                     prop: 'name',
@@ -190,7 +207,7 @@ export default {
                 {
                     prop: 'action',
                     label: '操作',
-                    width: 120,
+                    width: 220,
                     render: colRender([
                         {
                             text: '修改活动',
@@ -200,7 +217,38 @@ export default {
                         {
                             text: '暂停',
                             code: 'pause',
-                            onClick: _self.pause
+                            onClick: _self.pause,
+                            hidden: (record) => record.status !== '99'
+                        },
+                        {
+                            text: '重启',
+                            code: 'pause',
+                            onClick: _self.restart,
+                            hidden: (record) => record.status !== '99'
+                        },
+                        {
+                            text: '添加评款会',
+                            code: 'edit',
+                            onClick: _self.addAppraisal,
+                            hidden: _self.hiddenAppraisal
+                        },
+                        {
+                            text: '添加评款商品',
+                            code: 'edit',
+                            onClick: _self.addAg,
+                            hidden: _self.hiddenAg
+                        },
+                        {
+                            text: '添加订货会',
+                            code: 'edit',
+                            onClick: _self.addPurchasing,
+                            hidden: _self.hiddenPurchasing
+                        },
+                        {
+                            text: '添加订货商品',
+                            code: 'edit',
+                            onClick: _self.addPg,
+                            hidden: _self.hiddenPg
                         },
                         {
                             text: '活动设置',
@@ -278,6 +326,9 @@ export default {
         pause () {
             this.restartVisible = true;
         },
+        restart () {
+            this.restartVisible = true;
+        },
         setting () {
             console.log(this.activeName);
         },
@@ -287,7 +338,38 @@ export default {
         },
         add () {
             this.$router.push('/business/addScene');
-        }
+        },
+        hiddenAppraisal (scene) {
+            return scene.appraisalId !== 0 || scene.sort === 'purchasing';
+        },
+        hiddenPurchasing (scene) {
+            return scene.purchasingId !== 0 || scene.sort === 'appraisal';
+        },
+        addAppraisal (scene) {
+            this.SET_SCENCE(scene);
+            this.$router.push('/business/appraisal-setting?type=add');
+        },
+        addPurchasing (scene) {
+            this.SET_SCENCE(scene);
+            this.$router.push('/business/purchasing-setting?type=add');
+        },
+        hiddenAg (scene) {
+            return scene.sort === 'purchasing';
+        },
+        hiddenPg (scene) {
+            return scene.sort === 'appraisal';
+        },
+        addAg (scene) {
+            this.SET_SCENCE(scene);
+            this.$router.push('/business/appraisal-goods?type=addAg');
+        },
+        addPg (scene) {
+            this.SET_SCENCE(scene);
+            this.$router.push('/business/purchasing-goods?type=addPg');
+        },
+        ...mapMutations([
+            'SET_SCENCE'
+        ])
     },
     created () {
         this.query();

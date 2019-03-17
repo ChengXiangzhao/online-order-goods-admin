@@ -24,5 +24,7 @@ Mock.mock(/\/mock\/user\/logout/, 'post', userAPI.logout)
 Mock.mock(/\/mock\/admin\/business\/scene\/listinfo.html/, 'get', business.scenesList)
 Mock.mock(/\/mock\/admin\/business\/scene\/add.html/, 'post', business.scenesAdd)
 
+// purchasing
+Mock.mock(/\/mock\/admin\/business\/purchasing\/listinfo.html/, 'get', business.purchasingList)
 
 export default Mock

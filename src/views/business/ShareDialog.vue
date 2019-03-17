@@ -10,7 +10,7 @@
         <div class="share">
             <div class="detail-title">
                 <div class="title-img">
-                    <img src="../../assets/images/bitmap.png" width="120" height="120">
+                    <img :src="scene.pictureUrl || bitmap" width="120" height="120">
                 </div>
                 <el-form label-width="150px">
                     <el-form-item label="">
@@ -35,6 +35,7 @@
 </template>
 
 <script>
+import bitmap from '@/assets/images/thumb_pic10.jpg'
 export default {
     name: 'share-dialog',
     data() {

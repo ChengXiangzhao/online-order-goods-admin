@@ -303,15 +303,17 @@ export function colOperRender (opers) {
 export function colRender (opers) {
     return function (h, {record}) {
         return h('div', {}, opers.map(item => {
-            return h('el-button', {
-                props: {
-                    type: 'text',
-                    size: 'small'
-                },
-                on: {
-                    click: () => item.onClick(record)
-                }
-            }, item.text);
+            if (!item.hidden || !item.hidden(record)) {
+                return h('el-button', {
+                    props: {
+                        type: 'text',
+                        size: 'small'
+                    },
+                    on: {
+                        click: () => item.onClick(record)
+                    }
+                }, item.text);
+            }
         }));
     };
 }

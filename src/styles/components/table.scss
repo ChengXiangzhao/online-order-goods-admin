@@ -144,4 +144,14 @@ $hover-row-color: #f3f7fa;  //行hover
           margin-left: 0;
       }
   }
+
+  .table-actions {
+    float: right;
+    margin: 10px;
+    
+    .el-button {
+      padding: 6px 12px;
+      margin-left: 20px;
+    }
+  }
 }

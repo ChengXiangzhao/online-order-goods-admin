@@ -1,6 +1,6 @@
 <template>
     <div class="scene-edit">
-        <el-steps :active="1" finish-status="success" simple style="margin-top: 20px">
+        <el-steps v-if="type === 'add'" :active="0" finish-status="success" style="margin-top: 20px">
             <el-step v-for="step in steps" :title="step" :key="step"></el-step>
         </el-steps>
 
@@ -10,7 +10,7 @@
             </div>
             <el-form ref="form" :model="form" :rules="rules" label-suffix=":" label-width="150px">
                 <el-form-item label="活动类型" prop="sort" required>
-                    <el-radio-group v-model="form.sort" disabled="type === 'edit'" @change="handleSortChange">
+                    <el-radio-group v-model="form.sort" :disabled="type !== 'add'" @change="handleSortChange">
                         <el-radio label="appraisal">评款会</el-radio>
                         <el-radio label="purchasing">订货会</el-radio>
                         <el-radio label="both">评款会+订货会</el-radio>
@@ -81,11 +81,11 @@
                             <el-checkbox-group v-model="form.openType">
                                 <el-checkbox label="date" name="date">日期</el-checkbox>
                                 <el-checkbox label="name" name="name">姓名</el-checkbox>
-                                <el-checkbox label="phone" name="phone">电话</el-checkbox>
-                                <el-checkbox label="num" name="num">人数</el-checkbox>
-                                <el-checkbox label="cert" name="cert">身份证号</el-checkbox>
-                                <el-checkbox label="diect" name="diect">所在区域</el-checkbox>
-                                <el-checkbox label="along" name="along">添加随行人员</el-checkbox>
+                                <el-checkbox label="mobile" name="mobile">电话</el-checkbox>
+                                <el-checkbox label="follownum" name="follownum">人数</el-checkbox>
+                                <el-checkbox label="idcard" name="idcard">身份证号</el-checkbox>
+                                <el-checkbox label="area" name="area">所在区域</el-checkbox>
+                                <el-checkbox label="follow" name="follow">添加随行人员</el-checkbox>
                             </el-checkbox-group>
                         </el-form-item>
                     </div>
@@ -100,8 +100,8 @@
                         ></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="添加参会人员"  prop="signup_person" v-if="!form.is_signup">
-                    <el-select class="info-item" v-model="form.signup_person" multiple placeholder="请选择">
+                <el-form-item label="添加参会人员"  prop="signupPerson" v-if="!form.is_signup">
+                    <el-select class="info-item" v-model="form.signupPerson" multiple placeholder="请选择">
                         <el-option
                             v-for="item in peopleList"
                             :key="item.value"
@@ -125,9 +125,10 @@
                 </el-form-item>
                 <el-form-item>
                     <div class="btn-group">
-                        <el-button>预览</el-button>
-                        <el-button>保存并进行下一步</el-button>
-                        <el-button type="primary" @click="onSubmit">{{type === 'edit' ? '保存修改' : '确定发布'}}</el-button>
+                        <!-- <el-button :v-show="false">预览</el-button> -->
+                        <el-button @click="cancel">取消</el-button>
+                        <el-button v-if="type === 'add'" @click="next">保存并进行下一步</el-button>
+                        <el-button type="primary" @click="release">{{type === 'edit' ? '保存修改' : '确定发布'}}</el-button>
                     </div>
                 </el-form-item>
             </el-form>
@@ -142,8 +143,9 @@ import 'quill/dist/quill.bubble.css';
 import { quillEditor } from 'vue-quill-editor';
 import moment from 'moment';
 import cloneDeep from 'lodash/cloneDeep';
+import { mapState, mapMutations } from 'vuex';
 import { obj2FormData } from '@/utils/util';
-import { addScene, sceneDetail, updateScene } from '@/api/business';
+import { addScene, sceneDetail, updateScene, teamworkList } from '@/api/business';
 
 export default {
     name: 'add-scene',
@@ -191,7 +193,7 @@ export default {
                 signDate: '',
                 openType: [],
                 signup_sort: [],
-                signup_person: [],
+                signupPerson: [],
                 description: ''
             },
             picture: '',
@@ -207,7 +209,7 @@ export default {
                 startDate: [{ required: true, message: '请输入活动日期', trigger: 'blur' }],
                 signDate: [{ required: true, message: '请输入报名日期', trigger: 'blur' }],
                 signup_sort: [{ required: true, message: '请选择参会人员类型', trigger: 'blur' }],
-                signup_person: [{ required: false, message: '请选择参会人员', trigger: 'blur' }],
+                signupPerson: [{ required: false, message: '请选择参会人员', trigger: 'blur' }],
                 picture: [{ validator: picCheck, trigger: 'blur' }]
             },
             peopleTypeList: [
@@ -224,7 +226,7 @@ export default {
                     value: 'visitor'
                 }
             ],
-            peopleList: [],
+            peopleList: {},
             editorOption: {
                 modules: {
                     toolbar: [
@@ -242,52 +244,78 @@ export default {
                 },
                 placeholder: '',
                 readOnly: false
-            },
-            steps: ['基本信息', '管理评款商品']
+            }
         };
+    },
+    computed: {
+        ...mapState({
+            steps: state => state.business.steps
+        })
     },
     methods: {
         onSubmit () {
-            this.$refs.form.validate((valid) => {
-                if (valid) {
-                    let params = cloneDeep(this.form);
-                    // 格式化活动时间和报名时间
-                    params.start_at = moment(params.startDate[0]).format('YYYY-MM-DD HH:mm:ss');
-                    params.end_at = moment(params.startDate[1]).format('YYYY-MM-DD HH:mm:ss');
-                    params.signup_start = moment(params.signDate[0]).format('YYYY-MM-DD HH:mm:ss');
-                    params.signup_end = moment(params.signDate[1]).format('YYYY-MM-DD HH:mm:ss');
-                    delete params.startDate;
-                    delete params.signDate;
+            return new Promise((resolve, reject) => {
+                this.$refs.form.validate((valid) => {
+                    if (valid) {
+                        let params = cloneDeep(this.form);
+                        // 格式化活动时间和报名时间
+                        params.start_at = moment(params.startDate[0]).format('YYYY-MM-DD HH:mm:ss');
+                        params.end_at = moment(params.startDate[1]).format('YYYY-MM-DD HH:mm:ss');
+                        params.signup_start = moment(params.signDate[0]).format('YYYY-MM-DD HH:mm:ss');
+                        params.signup_end = moment(params.signDate[1]).format('YYYY-MM-DD HH:mm:ss');
+                        params.scene_invited = params.signupPerson;
 
-                    if (!params.status) {
-                        params.status = '1';
-                    }
-                    
-                    let id = null;
-                    let fun = addScene;
-                    let sucMsg = '添加活动成功';
-                    if (this.type === 'edit') {
-                        id = params.id;
-                        delete params.id
-                        fun = updateScene;
-                        sucMsg = '修改活动成功';
-                    }
+                        delete params.startDate;
+                        delete params.signDate;
+                        delete params.signupPerson;
 
-                    fun(obj2FormData(params), id).then((data) => {
-                        if (data.status === 200) {
-                            this.$notify({
-                                title: '成功',
-                                message: sucMsg,
-                                type: 'success'
-                            });
-                        } else {
-                            this.$notify.error({
-                                title: '错误',
-                                message: data.message
-                            });
+                        if (!params.status) {
+                            params.status = '1';
                         }
-                    });
-                }
+                        
+                        let id = null;
+                        let fun = addScene;
+                        let sucMsg = '添加活动成功';
+                        if (this.type === 'edit') {
+                            id = params.id;
+                            delete params.id
+                            fun = updateScene;
+                            sucMsg = '修改活动成功';
+                        }
+
+                        fun(obj2FormData(params), id).then((data) => {
+                            if (data.status === 200) {
+                                this.$notify({
+                                    title: '成功',
+                                    message: sucMsg,
+                                    type: 'success'
+                                });
+                                resolve();
+                            } else {
+                                this.$notify.error({
+                                    title: '错误',
+                                    message: data.message
+                                });
+                                reject();
+                            }
+                        });
+                    } else {
+                        reject();
+                    }
+                });
+            });
+        },
+        cancel() {
+            this.$router.back();
+        },
+        release() {
+            this.onSubmit().then(() => {
+                this.cancel();
+            });
+        },
+        next () {
+            this.onSubmit().then(() => {
+                this.$router.push('/business/appraisal-setting?type=scene-add');
             });
         },
         handlePicSuccess(res, file, picName) {
@@ -302,21 +330,33 @@ export default {
             return ispic;
         },
         handleSortChange (val) {
+            let steps = null;
             if (val === 'appraisal') {
-                this.steps = ['基本信息', '管理评款商品'];
+                steps = ['基本信息', '评款设置', '管理评款商品'];
             } else if (val === 'purchasing') {
-                this.steps = ['基本信息', '管理订货商品'];
+                steps = ['基本信息',  '订货设置', '管理订货商品'];
             } else if (val === 'both') {
-                this.steps = ['基本信息', '管理评款商品', '管理订货商品'];
+                steps = ['基本信息', '评款设置', '管理评款商品', '订货设置', '管理订货商品'];
             }
+            this.SET_STEPS(steps);
         },
-        handleSwitchChange (val) {
-            if (val) {
-                console.log(val);
-            }
-        }
+        getTeamworkDict() {
+            teamworkList({point_format_list: 'cascade', field_key: 'user_id'}).then(res => {
+                this.peopleList = Object.keys(res.datas).map(item => {
+                    return {
+                        value: item,
+                        name: res.datas[item]
+                    };
+                });
+            });
+        },
+        ...mapMutations([
+            'SET_STEPS',
+            'SET_SCENCE'
+        ])
     },
     created() {
+        this.getTeamworkDict();
         if (this.$route.query.id) {
             this.type = 'edit';
             sceneDetail(this.$route.query.id).then(res => {
@@ -328,6 +368,11 @@ export default {
                         rawScene.signup_sort = [];
                     } else {
                         rawScene.signup_sort = rawScene.signup_sort.split(',');
+                    }
+                    if (!rawScene.signupPerson || rawScene.signupPerson === '') {
+                        rawScene.signupPerson = [];
+                    } else {
+                        rawScene.signupPerson = rawScene.signupPerson.split(',');
                     }
                     this.form = rawScene;
                 }

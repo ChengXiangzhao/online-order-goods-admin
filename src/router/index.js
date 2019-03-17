@@ -42,27 +42,61 @@ export const asyncRouterMap = [
     path: '/business',
     component: Layout,
     redirect: '/business/scene',
-    name: '在线订货',
+    name: 'business',
     meta: { title: '在线订货', icon: 'example' },
     children: [
       {
         path: 'scene',
-        name: '展会列表',
+        name: 'scene',
         component: () => import('@/views/business/scene/Index'),
         meta: { title: '活动列表', icon: 'table' }
       },
       {
         path: 'addScene',
-        name: '发布活动',
+        name: 'addScene',
         hidden: true,
         component: () => import('@/views/business/scene/Add'),
         meta: { title: '发布活动', icon: 'table' }
       },
       {
+        path: 'appraisal-setting',
+        name: 'appraisal-setting',
+        hidden: true,
+        component: () => import('@/views/business/scene/AppraisalSetting'),
+        meta: { title: '评款设置', icon: 'table' }
+      },
+      {
+        path: 'appraisal-goods',
+        name: 'appraisal-goods',
+        hidden: true,
+        component: () => import('@/views/business/scene/AppraisalGood'),
+        meta: { title: '添加评款商品', icon: 'table' }
+      },
+      {
+        path: 'purchasing-setting',
+        name: 'purchasing-setting',
+        hidden: true,
+        component: () => import('@/views/business/scene/PurchasingSetting'),
+        meta: { title: '订货设置', icon: 'table' }
+      },
+      {
+        path: 'purchasing-goods',
+        name: 'purchasing-goods',
+        hidden: true,
+        component: () => import('@/views/business/scene/PurchasingGood'),
+        meta: { title: '添加订货商品', icon: 'table' }
+      },
+      {
         path: 'appraisal',
-        name: '评款会管理',
+        name: 'appraisal',
         component: () => import('@/views/business/appraisal/Index'),
         meta: { title: '评款会管理', icon: 'table' }
+      },
+      {
+        path: 'purchasing',
+        name: 'purchasing',
+        component: () => import('@/views/business/purchasing/Index'),
+        meta: { title: '订货会管理', icon: 'table' }
       }
     ]
   },

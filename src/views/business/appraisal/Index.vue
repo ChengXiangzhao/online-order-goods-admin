@@ -12,7 +12,7 @@
                     </template>
                     <List @action="handleAction"></List>
                 </el-tab-pane>
-                <el-tab-pane name="sals" lazy>
+                <el-tab-pane name="goods">
                     <template slot="label">
                         <div class="label-outside">
                             <div class="label-inner">
@@ -20,7 +20,7 @@
                             </div>
                         </div>
                     </template>
-                    
+                    <Goods key="appraisal-goods" :id="currentRecord.id" type="update"></Goods>
                 </el-tab-pane>
                 <el-tab-pane name="setting" v-if="settingShow">
                     <template slot="label">
@@ -30,7 +30,7 @@
                             </div>
                         </div>
                     </template>
-                    <Setting :appraisal="currentRecord" @close="handleSettingSwidth"></Setting>
+                    <Setting key="appraisal-setting" :appraisal="currentRecord" @close="handleSettingSwidth"></Setting>
                 </el-tab-pane>
             </el-tabs>
         </div>
@@ -43,18 +43,20 @@
 <script>
 import List from './List';
 import Setting from './Setting';
+import Goods from './Goods';
 
 export default {
     name: 'appraisal-index',
     components: {
         List,
-        Setting
+        Setting,
+        Goods
     },
     data() {
         return {
             activeName: 'list',
             settingShow: false,
-            currentRecord: null
+            currentRecord: {scene: {id: null}}
         }
     },
     methods: {
@@ -71,8 +73,8 @@ export default {
         },
         handleAction (action) {
             this.currentRecord = action.data;
-            if (action.type === 'sale') {
-                this.activeName = 'sals';
+            if (action.type === 'goods-list') {
+                this.activeName = 'goods';
             } else {
                 this.settingShow = true;
                 this.activeName = 'setting';

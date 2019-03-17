@@ -26,6 +26,7 @@ const scenes = [{
   "relateData": []
 }];
 
+
 export default {
   scenesList: (config) => {
     console.log(config);
@@ -88,5 +89,67 @@ export default {
       status: 200,
       message: '操作完成'
     };
+  },
+  purchasingList: (config) => {
+    return {
+      status: 200,
+      message: 'OK',
+      datas: {
+        infos: [{
+          base: {
+            id: 2,
+            scene_id: 6,
+            name: '衣点达新款大型低价订货会（测试）',
+            purchasing_range: '2019/5/10 10:30-2019/5/10 18:00==2019/5/11 10:30-2019/5/11 12:00',
+            min_money: 100,
+            min_number: 29,
+            min_number_goods: 5,
+            created_at: 1548064775,
+            updated_at: 1548064775,
+            description: '<p>定会规则</p>',
+            is_oversold: 2,
+            status: '1',
+          },
+          relateData: {
+            sceneData: {
+              id: 6,
+              name: '衣点达测试供货商',
+              start_at: 1548064775,
+              end_at: 1548064775,
+              stadium: '鸟巢',
+              thumbUrl: 'http://www.beeboone.com/images/prettyPhotoImages/thumb_pic10.jpg'
+            }
+          }
+        }],
+        relateAttributes: {
+          is_oversold: {
+            "0": "不允许超卖",
+            "2": "允许超卖"
+          }
+        },
+        listSearchAttributes: {
+          is_oversold: {
+            value: "no",
+            type: "checkbox",
+            name: "无限超卖",
+            infos: {
+              "all-search": "全部",
+              "0": "不允许超卖",
+              "2": "允许超卖"
+            }
+          },
+          id: {
+            name: "ID",
+            type: "text",
+            value: "no"
+          }
+        },
+        pages: {
+          totalCount: 1,
+          pageSize: 50,
+          page: 1
+        }
+      }
+    }
   }
 }

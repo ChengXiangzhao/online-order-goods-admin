@@ -1,11 +1,40 @@
 <template>
-    <div class="appraisal-setting">
+    <div class="purchasing-setting">
         <div class="basic-info">
-            <el-form ref="form" :model="form" label-suffix=":" label-width="100px">
-                <el-form-item label="评款会名称"  prop="name" required>
+            <el-form ref="form" :model="form" label-suffix=":" label-width="170px">
+                <el-form-item label="订货会标题"  prop="name" required>
                     <el-input class="info-item" v-model="form.name"></el-input>
                 </el-form-item>
-                <el-form-item label="评款日期" prop="range"  required>
+                <div class="open-sign">
+                    <div class="is-open">
+                        <el-form-item label="是否允许超卖">
+                            <el-switch v-model="form.is_oversold" :active-value="2" :inactive-value="0"></el-switch>
+                        </el-form-item>
+                    </div>
+                    <div class="open-option">
+                        <el-form-item label="显示商品图片">
+                            <el-switch v-model="form.show_pic" :active-value="1" :inactive-value="0"></el-switch>
+                        </el-form-item>
+                    </div>
+                </div>
+                <div class="open-sign">
+                    <div class="is-open">
+                        <el-form-item label="最小订货金额">
+                            <el-input  v-model="form.min_money"></el-input>
+                        </el-form-item>
+                    </div>
+                    <div class="open-option">
+                        <el-form-item label="最小订货数量(订单)">
+                            <el-input  v-model="form.min_number" placeholder="0为不限制"></el-input>
+                        </el-form-item>
+                    </div>
+                    <div class="open-option">
+                        <el-form-item label="最小订货数量(每款数)">
+                            <el-input v-model="form.min_number_goods" placeholder="0为不限制"></el-input>
+                        </el-form-item>
+                    </div>
+                </div>
+                <el-form-item label="订货日期" prop="range"  required>
                     <el-date-picker
                         class="info-item"
                         v-model="form.range"
@@ -16,70 +45,17 @@
                     >
                     </el-date-picker>
                 </el-form-item>
-                <div class="open-sign">
-                    <div class="is-open">
-                        <el-form-item label="评款星数">
-                            <el-rate
-                                v-model="form.star"
-                            ></el-rate>
-                        </el-form-item>
-                    </div>
-                    <div class="open-option">
-                        <el-form-item label="允许半颗星">
-                            <el-switch v-model="form.star_half" :active-value="2" :inactive-value="0"></el-switch>
-                        </el-form-item>
-                    </div>
-                    <div class="open-option">
-                        <el-form-item label="开启文字提示">
-                            <el-switch v-model="form.is_hint" :active-value="1" :inactive-value="0"></el-switch>
-                            <span class="text-tip">(差、一般、挺好、满意、很好)</span>
-                        </el-form-item>
-                    </div>
-                </div>
-                <el-form-item label="开启收藏">
-                    <el-switch v-model="form.is_favour" :active-value="1" :inactive-value="0"></el-switch>
-                    <span class="text-tip">(评款结束之后仍然可以查看所收藏的商品信息)</span>
-                </el-form-item>
-                <div class="open-sign">
-                    <div class="is-open">
-                        <el-form-item label="推荐到订货会">
-                            <el-switch v-model="form.is_recommend" :active-value="1" :inactive-value="0"></el-switch>
-                        </el-form-item>
-                    </div>
-                    <div class="open-option">
-                        <el-form-item label="每个账户推荐数限额">
-                            <el-input v-model="form.num_recommend"></el-input>
-                        </el-form-item>
-                    </div>
-                </div>
-                <el-form-item label="评款项">
-                    <el-radio-group v-model="form.elem_sort" @change="handleSortChange">
-                        <el-radio label="default">默认</el-radio>
-                        <el-radio label="self">自定义(至少选择一项)</el-radio>
-                    </el-radio-group>
-                </el-form-item>
-                <el-form-item label="" v-if="form.elem_sort === 'self'">
-                    <el-checkbox-group v-model="form.elem_list">
-                        <el-checkbox label="pattern" name="pattern">款式</el-checkbox>
-                        <el-checkbox label="fashion" name="fashion">时尚</el-checkbox>
-                        <el-checkbox label="color" name="color">配色</el-checkbox>
-                        <el-checkbox label="tech" name="tech">工艺</el-checkbox>
-                        <el-checkbox label="parts" name="parts">配件</el-checkbox>
-                        <el-checkbox label="price" name="price">价格</el-checkbox>
-                        <el-checkbox label="star" name="star">综合</el-checkbox>
-                    </el-checkbox-group>
-                </el-form-item>
                 <div class="desc-area">
                     <div class="title">
-                        <span>评款会帮助提示：</span>
+                        <span>评订货描述：</span>
                     </div>
                     <quill-editor
                         :style="styleSet" 
                         :disabled="false"
-                        v-model="form.content"
+                        v-model="form.description"
                         ref="myQuillEditor"
                         options="editorOption">
-                        <div v-html="form.content"></div>
+                        <div v-html="form.description"></div>
                     </quill-editor>
                 </div>
                 <el-form-item>
@@ -103,10 +79,10 @@ import { quillEditor } from 'vue-quill-editor';
 import cloneDeep from 'lodash/cloneDeep';
 import moment from 'moment';
 import { obj2FormData } from '@/utils/util';
-import { appraisalAdd } from '@/api/business';
+import { purchasingAdd } from '@/api/business';
 
 export default {
-    name: 'appraisal-setting',
+    name: 'purchasing-setting',
     components: { quillEditor },
     data() {
         return {
@@ -115,17 +91,14 @@ export default {
                 scene_id: 0,
                 name: '',
                 range: [],
-                star: 5,
-                star_half: 1,
-                is_hint: 1,
-                is_favour: 1,
-                is_recommend: 1,
-                num_recommend: 0,
-                elem_sort: 'self',
-                elem_list: ['color'],
-                content: ''
+                is_oversold: 2,
+                show_pic: 1,
+                min_money: 1,
+                min_number: '',
+                min_number_goods: '',
+                description: ''
             },
-            appraisalList: [],
+            purchasingList: [],
             styleSet: '',
             editorOption: {
                 modules: {
@@ -148,7 +121,7 @@ export default {
         };
     },
     props: {
-        appraisal: {
+        purchasing: {
             type: Object,
             required: true
         },
@@ -168,10 +141,10 @@ export default {
                 this.$refs.form.validate((valid) => {
                     if (valid) {
                         let params = cloneDeep(this.form);
-                        params.scene_id = this.scene.id;
-                        params.appraisal_range = `${moment(params.range[0]).format('YYYY-MM-DD HH:mm')}==${moment(params.range[1]).format('YYYY-MM-DD HH:mm')}`;
+                        params.purchasing_range = `${moment(params.range[0]).format('YYYY-MM-DD HH:mm')}==${moment(params.range[1]).format('YYYY-MM-DD HH:mm')}`;
                         delete params.range;
-                        appraisalAdd(obj2FormData(params), this.scene.id).then((data) => {
+                        params.scene_id = this.scene.id;
+                        purchasingAdd(obj2FormData(params), this.scene.id).then((data) => {
                             if (data.status === 200) {
                                 this.$notify({
                                     title: '成功',
@@ -196,7 +169,7 @@ export default {
         },
         next () {
             this.onSubmit().then(() => {
-                this.$router.push('/business/appraisal-goods?type=scene_add')
+                this.$router.push('/business/purchasing-goods?type=scene_add')
             });
         },
         cancel() {
@@ -212,7 +185,7 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
-.appraisal-setting {
+.purchasing-setting {
     padding: 20px;
 
     .basic-info {
